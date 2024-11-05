@@ -5,99 +5,111 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import os
 import sys
+import logging
 
 # Imports do projeto
-from dados import gerar_nome, gerar_login, gerar_cpf
+from dados import gerar_nome, gerar_login, gerar_cpf_valido
+
+# Configuração de logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Função para obter o caminho absoluto para arquivos de recurso
 def resource_path(relative_path):
-    """ Retorna o caminho absoluto do arquivo, compatível com executáveis """
+    """Retorna o caminho absoluto do arquivo, compatível com executáveis."""
     try:
         base_path = sys._MEIPASS  # Caminho temporário do executável cx_Freeze ou PyInstaller
     except AttributeError:
         base_path = os.path.abspath(".")
-
     return os.path.join(base_path, relative_path)
 
 # Função para ajustar a opacidade da imagem
 def ajustar_opacidade(imagem_path, opacidade):
+    """Ajusta a opacidade da imagem especificada.
+    
+    Args:
+        imagem_path (str): Caminho para a imagem.
+        opacidade (float): Fator de opacidade (0.0 a 1.0).
+
+    Retorna:
+        Image: Imagem com opacidade ajustada, ou None se o arquivo não existir.
+    """
     if not os.path.exists(imagem_path):
-        print(f"Arquivo não encontrado: {imagem_path}")
+        logging.warning(f"Arquivo não encontrado: {imagem_path}")
         return None
 
     imagem = Image.open(imagem_path).convert("RGBA")
     alpha = imagem.split()[3]  # Obtém o canal alfa (transparência)
-    
-    # Ajusta a opacidade
     alpha = alpha.point(lambda p: p * opacidade)
     imagem.putalpha(alpha)
-    
     return imagem
 
 # Função para copiar texto usando o clipboard da janela principal
 def copiar_para_clipboard(texto, divisoria):
+    """Copia o texto para o clipboard e anima a divisória.
+    
+    Args:
+        texto (str): Texto a ser copiado.
+        divisoria (tk.Frame): Frame divisório a ser animado.
+    """
     janela.clipboard_clear()
     janela.clipboard_append(texto)
     janela.update()  # Mantém os dados no clipboard
-    
-    # Inicia a animação da linha divisória
     animar_divisoria(divisoria)
 
 # Função para animar a linha divisória (ficar verde e depois voltar ao normal)
 def animar_divisoria(divisoria):
+    """Anima a divisória mudando de cor temporariamente."""
     divisoria.config(bg="#00FF00")
     janela.after(500, lambda: divisoria.config(bg="#555555"))
 
 # Função para atualizar os dados na interface
 def atualizar_dados():
+    """Gera e exibe um novo nome, login e CPF válido na interface."""
     novo_nome = gerar_nome()
     novo_login = gerar_login(novo_nome)
-    novo_cpf = gerar_cpf()
+    novo_cpf = gerar_cpf_valido()
 
-    # Debug para verificar dados gerados
-    print(f"Debug - Novo Nome: {novo_nome}, Novo Login: {novo_login}, Novo CPF: {novo_cpf}")
+    logging.debug(f"Novo Nome: {novo_nome}, Novo Login: {novo_login}, Novo CPF: {novo_cpf}")
 
     usuario_label.config(text=novo_login)
     nome_label.config(text=novo_nome)
     cpf_label.config(text=novo_cpf)
 
-    # Atualiza os comandos dos botões de copiar com os novos dados
     copiar_usuario_btn['command'] = lambda: copiar_para_clipboard(novo_login, divisoria_usuario)
     copiar_nome_btn['command'] = lambda: copiar_para_clipboard(novo_nome, divisoria_nome)
     copiar_cpf_btn['command'] = lambda: copiar_para_clipboard(novo_cpf, divisoria_cpf)
 
 # Função principal para criar a interface completa
 def criar_interface():
+    """Configura e inicia a interface gráfica principal."""
     global janela, usuario_label, nome_label, cpf_label
     global copiar_usuario_btn, copiar_nome_btn, copiar_cpf_btn
     global divisoria_usuario, divisoria_nome, divisoria_cpf
 
     janela = tk.Tk()
-    janela.title("Destiny Bot")
+    janela.title("Gerador Destiny")  # Alteração do título da janela
     janela.geometry("260x420")
     janela.configure(bg="#333333")
     janela.resizable(False, False)
 
-    # src/interface.py (dentro da função criar_interface)
+    # Carrega o ícone da janela
     icon_path = resource_path("assets/icone.ico")
     if os.path.exists(icon_path):
         janela.iconbitmap(icon_path)
     else:
-        print("Ícone não encontrado.")
+        logging.warning("Ícone não encontrado.")
 
+    # Carregar a imagem de fundo com opacidade ajustada
+    imagem_path = resource_path("assets/background.jpg")
+    imagem_fundo = ajustar_opacidade(imagem_path, 0.1)  # Opacidade de 10%
 
-# Carregar a imagem de fundo com opacidade ajustada
-imagem_path = resource_path("assets/background.jpg")
-imagem_fundo = ajustar_opacidade(imagem_path, 0.1)  # Opacidade de 10%
-
-if imagem_fundo is not None:
-    imagem_fundo_tk = ImageTk.PhotoImage(imagem_fundo)
-    background_label = tk.Label(janela, image=imagem_fundo_tk, bg="#333333")
-    background_label.place(relwidth=1, relheight=1)
-    background_label.lower()
-else:
-    print("Imagem de fundo não encontrada.")
-
+    if imagem_fundo is not None:
+        imagem_fundo_tk = ImageTk.PhotoImage(imagem_fundo)
+        background_label = tk.Label(janela, image=imagem_fundo_tk, bg="#333333")
+        background_label.place(relwidth=1, relheight=1)
+        background_label.lower()
+    else:
+        logging.warning("Imagem de fundo não encontrada.")
 
     # Frame principal para sobrepor os elementos na imagem de fundo
     frame_principal = tk.Frame(janela, bg="#333333", padx=10, pady=10)
@@ -109,11 +121,18 @@ else:
     style.configure("TButton", font=("Helvetica", 9, "bold"))
 
     # Configura os elementos de texto e botões da interface
+    configurar_elementos_interface(frame_principal)
+
+    janela.mainloop()
+
+def configurar_elementos_interface(frame_principal):
+    """Configura os elementos de usuário, nome, CPF e botões na interface."""
     # USUÁRIO
     tk.Label(frame_principal, text="USUÁRIO", bg="#333333", fg="#CCCCCC", font=("Helvetica", 10, "bold")).pack(anchor="w")
     linha_frame_usuario = tk.Frame(frame_principal, bg="#333333")
     linha_frame_usuario.pack(fill="x", pady=5)
 
+    global usuario_label, copiar_usuario_btn, divisoria_usuario
     usuario_label = tk.Label(linha_frame_usuario, text="", bg="#444444", fg="#FFFFFF", font=("Helvetica", 10))
     usuario_label.pack(side="left", expand=True, fill="x", padx=(0, 5))
 
@@ -128,6 +147,7 @@ else:
     linha_frame_nome = tk.Frame(frame_principal, bg="#333333")
     linha_frame_nome.pack(fill="x", pady=5)
 
+    global nome_label, copiar_nome_btn, divisoria_nome
     nome_label = tk.Label(linha_frame_nome, text="", bg="#444444", fg="#FFFFFF", font=("Helvetica", 10))
     nome_label.pack(side="left", expand=True, fill="x", padx=(0, 5))
 
@@ -142,6 +162,7 @@ else:
     linha_frame_cpf = tk.Frame(frame_principal, bg="#333333")
     linha_frame_cpf.pack(fill="x", pady=5)
 
+    global cpf_label, copiar_cpf_btn, divisoria_cpf
     cpf_label = tk.Label(linha_frame_cpf, text="", bg="#444444", fg="#FFFFFF", font=("Helvetica", 10))
     cpf_label.pack(side="left", expand=True, fill="x", padx=(0, 5))
 
@@ -162,4 +183,3 @@ else:
                                 bg="#333333", fg="#FFFFFF", selectcolor="#555555", font=("Helvetica", 9))
     topo_check.pack(pady=(5, 0))
 
-    janela.mainloop()
