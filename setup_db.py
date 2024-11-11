@@ -1,5 +1,3 @@
-# src/setup_db.py
-
 import sqlite3
 import os
 
@@ -20,57 +18,86 @@ def criar_banco_de_dados():
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS nomes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nome TEXT NOT NULL
+                nome TEXT NOT NULL,
+                genero TEXT NOT NULL
             )
         ''')
 
-        # Lista de 50 nomes a serem inseridos
-        nomes = [
-            "João Silva", "Maria Oliveira", "Carlos Eduardo", "Ana Paula",
-            "Pedro Henrique", "Fernanda Costa", "Luiz Fernando", "Mariana Alves",
-            "Gabriel Lima", "Rafaela Pereira", "Lucas Souza", "Juliana Mendes",
-            "Felipe Almeida", "Isabela Martins", "Roberto Vieira", "Renata Rocha",
-            "Ricardo Fernandes", "Beatriz Freitas", "Vinícius Moreira", "Larissa Gonçalves",
-            "Diego Azevedo", "Camila Ribeiro", "Tiago Costa", "Patrícia Ferreira",
-            "Guilherme Pinto", "Viviane Duarte", "Renato Castro", "Elaine Moura",
-            "César Oliveira", "Simone Cardoso", "Bruno Fonseca", "Natália Braga",
-            "Hugo Santana", "Letícia Mendes", "Marcelo Antunes", "Tatiana Correia",
-            "Vitor Barreto", "Adriana Campos", "Leonardo Mendes", "Carolina Machado",
-            "Rodrigo Moreira", "Aline Vasconcelos", "Daniel Pereira", "Priscila Martins",
-            "Igor Sampaio", "Vanessa Neves", "Fábio Rocha", "Jéssica Fernandes",
-            "Alexandre Almeida", "Luciana Ferreira"
+        # Lista de nomes masculinos e femininos
+        nomes_masculinos = [
+            "João Silva", "Carlos Eduardo", "Pedro Henrique", "Luiz Fernando",
+            "Gabriel Lima", "Lucas Souza", "Felipe Almeida", "Ricardo Fernandes",
+            "Roberto Vieira", "Vinícius Moreira", "Diego Azevedo", "Tiago Costa",
+            "Guilherme Pinto", "Renato Castro", "César Oliveira", "Bruno Fonseca",
+            "Hugo Santana", "Marcelo Antunes", "Vitor Barreto", "Leonardo Mendes"
         ]
 
-        # Inserindo nomes no banco de dados
-        cursor.executemany('INSERT INTO nomes (nome) VALUES (?)', [(nome,) for nome in nomes])
+        nomes_femininos = [
+            "Maria Oliveira", "Ana Paula", "Fernanda Costa", "Mariana Alves",
+            "Rafaela Pereira", "Juliana Mendes", "Isabela Martins", "Renata Rocha",
+            "Beatriz Freitas", "Larissa Gonçalves", "Camila Ribeiro", "Patrícia Ferreira",
+            "Viviane Duarte", "Elaine Moura", "Simone Cardoso", "Natália Braga",
+            "Letícia Mendes", "Tatiana Correia", "Adriana Campos", "Carolina Machado"
+        ]
+
+        # Inserindo nomes masculinos
+        cursor.executemany('INSERT INTO nomes (nome, genero) VALUES (?, "M")', [(nome,) for nome in nomes_masculinos])
+        # Inserindo nomes femininos
+        cursor.executemany('INSERT INTO nomes (nome, genero) VALUES (?, "F")', [(nome,) for nome in nomes_femininos])
         conn.commit()
-        print(f"{len(nomes)} nomes inseridos no banco de dados.")
+        print(f"{len(nomes_masculinos) + len(nomes_femininos)} nomes inseridos no banco de dados.")
 
         # Criação da tabela de adjetivos
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS adjetivos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                adjetivo TEXT NOT NULL
+                adjetivo TEXT NOT NULL,
+                categoria TEXT NOT NULL
             )
         ''')
 
-        # Lista de 50 adjetivos a serem inseridos
+        # Lista de adjetivos categorizados
         adjetivos = [
-            "01", "delas", "slots", "acordeon", "junior", "safadinha",
-            "cheirosa", "oficial", "cassino", "011", "021", "013", 
-            "damidia", "daspaty", "delas", "xpto", "topzera", "zica",
-            "coringa", "malvada", "patroa", "feliz", "vip", "loira",
-            "branquela", "mister", "sedutora", "gangster", "bbb",
-            "noob", "expert", "black", "pink", "gold", "silver",
-            "brabo", "insano", "like", "quente", "frio", "bombom",
-            "king", "queen", "doida", "boss", "star", "021", "013",
-            "000", "plus"
+            ("delas", "personalidade"), ("slots", "profissional"), ("acordeon", "musical"),
+            ("junior", "status"), ("safadinha", "personalidade"), ("cheirosa", "característica"),
+            ("oficial", "status"), ("cassino", "profissional"), ("xpto", "aleatório"),
+            ("topzera", "personalidade"), ("coringa", "característica"), ("patroa", "status"),
+            ("vip", "status"), ("feliz", "personalidade"), ("loira", "característica"),
+            ("expert", "profissional"), ("gold", "status"), ("insano", "personalidade"),
+            ("king", "status"), ("queen", "status"), ("brabo", "personalidade"),
+            ("star", "status"), ("doida", "personalidade"), ("plus", "status")
         ]
 
-        # Inserindo adjetivos no banco de dados
-        cursor.executemany('INSERT INTO adjetivos (adjetivo) VALUES (?)', [(adj,) for adj in adjetivos])
+        # Inserindo adjetivos com categorias
+        cursor.executemany('INSERT INTO adjetivos (adjetivo, categoria) VALUES (?, ?)', adjetivos)
         conn.commit()
         print(f"{len(adjetivos)} adjetivos inseridos no banco de dados.")
+
+        # Criação da tabela de DDDs
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS ddd (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                codigo TEXT NOT NULL
+            )
+        ''')
+
+        # Lista de DDDs válidos
+        ddds_validos = [
+            "11", "21", "31", "41", "51", "61", "71", "81", "91",
+            "12", "22", "32", "42", "52", "62", "72", "82", "92",
+            "13", "23", "33", "43", "53", "63", "73", "83", "93",
+            "14", "24", "34", "44", "54", "64", "74", "84", "94",
+            "15", "25", "35", "45", "55", "65", "75", "85", "95",
+            "16", "26", "36", "46", "56", "66", "76", "86", "96",
+            "17", "27", "37", "47", "57", "67", "77", "87", "97",
+            "18", "28", "38", "48", "58", "68", "78", "88", "98",
+            "19", "29", "39", "49", "59", "69", "79", "89", "99"
+        ]
+
+        # Inserindo DDDs no banco de dados
+        cursor.executemany('INSERT INTO ddd (codigo) VALUES (?)', [(ddd,) for ddd in ddds_validos])
+        conn.commit()
+        print(f"{len(ddds_validos)} DDDs inseridos no banco de dados.")
 
         # Verifica se os dados foram inseridos corretamente
         cursor.execute('SELECT COUNT(*) FROM nomes')
@@ -80,6 +107,10 @@ def criar_banco_de_dados():
         cursor.execute('SELECT COUNT(*) FROM adjetivos')
         count_adjetivos = cursor.fetchone()[0]
         print(f"Adjetivos no banco de dados: {count_adjetivos}")
+
+        cursor.execute('SELECT COUNT(*) FROM ddd')
+        count_ddds = cursor.fetchone()[0]
+        print(f"DDDs no banco de dados: {count_ddds}")
 
     except Exception as e:
         print(f"Erro ao criar o banco de dados: {e}")
