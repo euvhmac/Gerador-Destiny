@@ -158,7 +158,7 @@ if __name__ == "__main__":
         nome = gerar_nome(genero)
         login = gerar_login(nome)
         cpf = gerar_cpf_valido()
-        celular = gerar_numero_celular()
+        celular = gerar_numero_celular_completo()
         print(f"Nome ({'Masculino' if genero == 'M' else 'Feminino' if genero == 'F' else 'Qualquer'}): {nome}")
         print(f"Login: {login}")
         print(f"CPF: {cpf}")
